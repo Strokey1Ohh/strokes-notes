@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Strokes Note Opener</title>
+<style>
+  :root { --ground:#f5f4fa; --surface:#fff; --ink:#1e1b2e; --muted:#625d78; --accent:#6b4fd8; --accent-ink:#fff; --line:#dedbea; color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root { --ground:#15131d; --surface:#1f1c2b; --ink:#ece9f7; --muted:#a7a1bf; --accent:#9a82f2; --accent-ink:#15131d; --line:#34304a; color-scheme: dark; }
+  }
+  body { margin:0; background:var(--ground); color:var(--ink); font:16px/1.5 "Segoe UI", system-ui, sans-serif; padding:48px 16px; }
+  main { max-width:34rem; margin:0 auto; display:grid; gap:20px; }
+  .eyebrow { margin:0; font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  h1 { margin:0; font:600 2rem/1.2 Consolas, "Cascadia Mono", monospace; overflow-wrap:anywhere; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:20px; display:grid; gap:14px; }
+  .open { display:block; text-align:center; text-decoration:none; background:var(--accent); color:var(--accent-ink); font-weight:600; padding:14px 20px; border-radius:8px; }
+  .open:focus-visible { outline:3px solid var(--ink); outline-offset:2px; }
+  [hidden] { display:none !important; }
+  p { margin:0; }
+  .muted { color:var(--muted); font-size:.95rem; }
+  code { font-family:Consolas, monospace; background:var(--ground); padding:1px 6px; border-radius:4px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Strokes vault · Daily Notes</p>
+  <h1 id="note">Opening…</h1>
+  <div class="card">
+    <a id="open" class="open" href="#">Open in Obsidian</a>
+    <p class="muted">If Obsidian doesn't open by itself, click the button. The first time, your browser asks "Open Obsidian?" — tick <b>Always allow</b>.</p>
+  </div>
+  <div class="card">
+    <p class="muted">Still nothing? In Obsidian press <b>Ctrl+O</b>, type <code id="name">the note name</code> and press Enter.</p>
+  </div>
+</main>
+<script>
+  // Link format: https://<user>.github.io/strokes-notes/#2026-09-01  (or ?d=2026-09-01)
+  var VAULT = "Strokes", FOLDER = "Daily Notes";
+  var n = decodeURIComponent((location.hash || "").slice(1)) ||
+          (new URLSearchParams(location.search).get("d") || "");
+  var ok = /^\d{4}-\d{2}-\d{2}$/.test(n);
+  var a = document.getElementById("open");
+  if (ok) {
+    var uri = "obsidian://open?vault=" + encodeURIComponent(VAULT) + "&file=" + encodeURIComponent(FOLDER + "/" + n);
+    document.getElementById("note").textContent = n;
+    document.getElementById("name").textContent = n;
+    a.href = uri;
+    a.textContent = "Open " + n + " in Obsidian";
+    location.href = uri;
+  } else {
+    document.getElementById("note").textContent = "No note chosen";
+    a.hidden = true;
+  }
+</script>
+</body>
+</html>
