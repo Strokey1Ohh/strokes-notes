@@ -49,6 +49,15 @@
     a.href = uri;
     a.textContent = "Open " + n + " in Obsidian";
     location.href = uri;
+    // Close the tab once Obsidian has taken focus (or after a few seconds).
+    // Browsers only allow this for tabs opened from a link, like an email; otherwise it does nothing.
+    var closeTab = function () { setTimeout(function () { window.close(); }, 300); };
+    window.addEventListener("blur", closeTab, { once: true });
+    document.addEventListener("visibilitychange", function () { if (document.hidden) closeTab(); }, { once: true });
+    setTimeout(function () { window.close(); }, 4000);
+    setTimeout(function () {
+      document.querySelector(".card .muted").innerHTML = "Obsidian should now be open — you can close this tab.";
+    }, 4500);
   } else {
     document.getElementById("note").textContent = "No note chosen";
     a.hidden = true;
