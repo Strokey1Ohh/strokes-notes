@@ -21,11 +21,17 @@
   p { margin:0; }
   .muted { color:var(--muted); font-size:.95rem; }
   code { font-family:Consolas, monospace; background:var(--ground); padding:1px 6px; border-radius:4px; }
+  :root { --ok:#1f8a4c; --ok-ink:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --ok:#3fbf73; --ok-ink:#0d1f14; } }
+  .ticked { background:var(--ok); color:var(--ok-ink); border-radius:10px; padding:22px 20px; text-align:center; font-weight:700; font-size:1.75rem; animation:pop .35s ease-out; }
+  @keyframes pop { from { transform:scale(.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { .ticked { animation:none; } }
 </style>
 </head>
 <body>
 <main>
   <p class="eyebrow">Strokes vault · Daily Notes</p>
+  <div id="ticked" class="ticked" role="status" hidden>Ticked off ✓</div>
   <h1 id="note">Opening…</h1>
   <div class="card">
     <a id="open" class="open" href="#">Open in Obsidian</a>
@@ -66,13 +72,16 @@
     }
     document.getElementById("name").textContent = n;
     a.href = uri;
-    location.href = uri;
+    // For a tick-off, flash the green confirmation for a second before handing over to Obsidian, so it's actually seen.
+    var delay = done ? 1200 : 0;
+    if (done) document.getElementById("ticked").hidden = false;
+    setTimeout(function () { location.href = uri; }, delay);
     // Close the tab once Obsidian has taken focus (or after a few seconds).
     // Browsers only allow this for tabs opened from a link, like an email; otherwise it does nothing.
     var closeTab = function () { setTimeout(function () { window.close(); }, 300); };
     window.addEventListener("blur", closeTab, { once: true });
     document.addEventListener("visibilitychange", function () { if (document.hidden) closeTab(); }, { once: true });
-    setTimeout(function () { window.close(); }, 4000);
+    setTimeout(function () { window.close(); }, 4000 + delay);
     setTimeout(function () {
       document.querySelector(".card .muted").innerHTML = "Obsidian should now be open — you can close this tab.";
     }, 4500);
