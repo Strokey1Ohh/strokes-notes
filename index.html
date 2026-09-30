@@ -36,18 +36,36 @@
   </div>
 </main>
 <script>
-  // Link format: https://<user>.github.io/strokes-notes/#2026-09-01  (or ?d=2026-09-01)
+  // Link formats:
+  //   Open a note:   https://<user>.github.io/strokes-notes/#2026-09-01  (or ?d=2026-09-01)
+  //   Tick a task:   https://<user>.github.io/strokes-notes/#done/2026-09-01/<URL-encoded task text>
+  // Ticking needs the "Advanced URI" community plugin in Obsidian. It swaps "- [ ] <task>" for "- [x] <task>" in that note.
   var VAULT = "Strokes", FOLDER = "Daily Notes";
-  var n = decodeURIComponent((location.hash || "").slice(1)) ||
-          (new URLSearchParams(location.search).get("d") || "");
-  var ok = /^\d{4}-\d{2}-\d{2}$/.test(n);
+  var hash = (location.hash || "").slice(1), task = "";
+  var done = /^done\/(\d{4}-\d{2}-\d{2})\/(.+)$/.exec(hash);
+  var n;
+  if (done) { n = done[1]; try { task = decodeURIComponent(done[2]); } catch (e) { task = ""; } }
+  else { n = decodeURIComponent(hash) || (new URLSearchParams(location.search).get("d") || ""); }
+  var ok = /^\d{4}-\d{2}-\d{2}$/.test(n) && (!done || task.trim() !== "");
   var a = document.getElementById("open");
   if (ok) {
-    var uri = "obsidian://open?vault=" + encodeURIComponent(VAULT) + "&file=" + encodeURIComponent(FOLDER + "/" + n);
-    document.getElementById("note").textContent = n;
+    var uri;
+    if (done) {
+      uri = "obsidian://adv-uri?vault=" + encodeURIComponent(VAULT) +
+            "&filepath=" + encodeURIComponent(FOLDER + "/" + n + ".md") +
+            "&search=" + encodeURIComponent("- [ ] " + task) +
+            "&replace=" + encodeURIComponent("- [x] " + task);
+      document.querySelector(".eyebrow").textContent = "Strokes vault · Ticking off a task in " + n;
+      document.getElementById("note").textContent = "✓ " + task;
+      document.getElementById("note").style.fontSize = "1.25rem";
+      a.textContent = "Tick it off in Obsidian";
+    } else {
+      uri = "obsidian://open?vault=" + encodeURIComponent(VAULT) + "&file=" + encodeURIComponent(FOLDER + "/" + n);
+      document.getElementById("note").textContent = n;
+      a.textContent = "Open " + n + " in Obsidian";
+    }
     document.getElementById("name").textContent = n;
     a.href = uri;
-    a.textContent = "Open " + n + " in Obsidian";
     location.href = uri;
     // Close the tab once Obsidian has taken focus (or after a few seconds).
     // Browsers only allow this for tabs opened from a link, like an email; otherwise it does nothing.
