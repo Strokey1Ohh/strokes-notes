@@ -26,6 +26,7 @@
   .ticked { background:var(--ok); color:var(--ok-ink); border-radius:10px; padding:22px 20px; text-align:center; font-weight:700; font-size:1.75rem; animation:pop .35s ease-out; }
   @keyframes pop { from { transform:scale(.9); opacity:0; } to { transform:scale(1); opacity:1; } }
   @media (prefers-reduced-motion: reduce) { .ticked { animation:none; } }
+  .ticked.ignored { background:var(--muted); color:var(--surface); }
 </style>
 </head>
 <body>
@@ -45,12 +46,15 @@
   // Link formats:
   //   Open a note:   https://<user>.github.io/strokes-notes/#2026-09-01  (or ?d=2026-09-01)
   //   Tick a task:   https://<user>.github.io/strokes-notes/#done/2026-09-01/<URL-encoded task text>
-  // Ticking needs the "Advanced URI" community plugin in Obsidian. It swaps "- [ ] <task>" for "- [x] <task>" in that note.
+  //   Ignore a task: https://<user>.github.io/strokes-notes/#ignore/2026-09-01/<URL-encoded task text>
+  // Both need the "Advanced URI" community plugin in Obsidian. Done swaps "- [ ] <task>" for "- [x] <task>";
+  // Ignore swaps it for "- [-] <task>" (cancelled), so the follow-up chaser stops listing it but the line stays in the note.
   var VAULT = "Strokes", FOLDER = "Daily Notes";
   var hash = (location.hash || "").slice(1), task = "";
-  var done = /^done\/(\d{4}-\d{2}-\d{2})\/(.+)$/.exec(hash);
+  var done = /^(done|ignore)\/(\d{4}-\d{2}-\d{2})\/(.+)$/.exec(hash);
+  var ignore = !!done && done[1] === "ignore";
   var n;
-  if (done) { n = done[1]; try { task = decodeURIComponent(done[2]); } catch (e) { task = ""; } }
+  if (done) { n = done[2]; try { task = decodeURIComponent(done[3]); } catch (e) { task = ""; } }
   else { n = decodeURIComponent(hash) || (new URLSearchParams(location.search).get("d") || ""); }
   var ok = /^\d{4}-\d{2}-\d{2}$/.test(n) && (!done || task.trim() !== "");
   var a = document.getElementById("open");
@@ -60,11 +64,12 @@
       uri = "obsidian://adv-uri?vault=" + encodeURIComponent(VAULT) +
             "&filepath=" + encodeURIComponent(FOLDER + "/" + n + ".md") +
             "&search=" + encodeURIComponent("- [ ] " + task) +
-            "&replace=" + encodeURIComponent("- [x] " + task);
-      document.querySelector(".eyebrow").textContent = "Strokes vault · Ticking off a task in " + n;
-      document.getElementById("note").textContent = "✓ " + task;
+            "&replace=" + encodeURIComponent((ignore ? "- [-] " : "- [x] ") + task);
+      document.querySelector(".eyebrow").textContent = "Strokes vault · " + (ignore ? "Ignoring" : "Ticking off") + " a task in " + n;
+      document.getElementById("note").textContent = (ignore ? "✕ " : "✓ ") + task;
       document.getElementById("note").style.fontSize = "1.25rem";
-      a.textContent = "Tick it off in Obsidian";
+      a.textContent = ignore ? "Ignore it in Obsidian" : "Tick it off in Obsidian";
+      if (ignore) { var tk = document.getElementById("ticked"); tk.textContent = "Ignored ✕"; tk.className = "ticked ignored"; }
     } else {
       uri = "obsidian://open?vault=" + encodeURIComponent(VAULT) + "&file=" + encodeURIComponent(FOLDER + "/" + n);
       document.getElementById("note").textContent = n;
